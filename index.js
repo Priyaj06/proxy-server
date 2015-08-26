@@ -20,32 +20,33 @@ let logStream = logPath ? fs.createWriteStream(logPath) : process.stdout
 
 http.createServer((req, res) => {
     console.log(`Request received at: ${req.url}`)
+
     req.pipe(res)
 
-for (let header in req.headers) {
-    res.setHeader(header, req.headers[header])
-}
+	for (let header in req.headers) {
+	    res.setHeader(header, req.headers[header])
+	}
 
-process.stdout.write('\n\n\n' + JSON.stringify(req.headers))
-req.pipe(logStream, {end: false})
-
+	process.stdout.write('\n\n\n' + JSON.stringify(req.headers))
+	req.pipe(logStream, {end: false})
+	logStream.write('Request headers: ' + JSON.stringify(req.headers))
+	req.pipe(res)
 }).listen(8000)
 
 http.createServer((req, res) => {
- let options = {
-        headers: req.headers,
-        url: `http://${destinationUrl}${req.url}`
-    }
+	 console.log(`Proxying request to: ${destinationUrl + req.url}`)
+	 let options = {
+	        headers: req.headers,
+	        url: `http://${destinationUrl}${req.url}`
+	    }
  
- request(options).pipe(res)
-options.method = req.method
-req.pipe(request(options)).pipe(res)
-
-process.stdout.write('\n\n\n' + JSON.stringify(req.headers))
-req.pipe(logStream, {end: false})
-
-let downstreamResponse = req.pipe(request(options))
-process.stdout.write(JSON.stringify(downstreamResponse.headers))
-downstreamResponse.pipe(process.stdout)
-downstreamResponse.pipe(res)
+ 	//request(options).pipe(res)
+ 	options.method = req.method
+	// Notice streams are chainable:
+	// inpuStream -> input/outputStream -> outputStream
+	//req.pipe(request(options)).pipe(res)
+	let downstreamResponse = req.pipe(request(options))
+	process.stdout.write(JSON.stringify(downstreamResponse.headers))
+	downstreamResponse.pipe(process.stdout)
+	downstreamResponse.pipe(res)
 }).listen(8001)
