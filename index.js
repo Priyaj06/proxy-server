@@ -11,7 +11,7 @@ let port = argv.port || (argv.host === '127.0.0.1' ? 8000 : 80)
 
 let destinationUrl = argv.url || scheme + argv.host + ':' + port
 let logPath = argv.log && path.join(__dirname, argv.log)
-let logStream = logPath ? fs.createWriteStream(logPath) : process.stdoutt
+let logStream = logPath ? fs.createWriteStream(logPath) : process.stdout
 
 
 http.createServer((req, res) => {
